@@ -3,6 +3,7 @@ FROM node:20-alpine AS base
 WORKDIR /app
 
 FROM base AS deps
+RUN npm install -g npm@latest
 COPY package.json package-lock.json* ./
 RUN npm ci
 
