@@ -37,7 +37,7 @@ class InscriptionView(APIView):
 
 
 class MembreViewSet(viewsets.ModelViewSet):
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "post", "patch", "head", "options"]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
