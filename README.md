@@ -6,7 +6,7 @@ Outil interne pour un club de Jiu-Jitsu Brésilien parisien : centralise les fic
 
 ---
 
-## MVP v0 — ce qui est livré
+## MVP v0 —   
 
 | Fonctionnalité | État |
 |---|---|
@@ -18,16 +18,16 @@ Outil interne pour un club de Jiu-Jitsu Brésilien parisien : centralise les fic
 | Alertes certifs médicaux expirants (J-30 / expirés) | ✅ modèles prêts |
 | Gestion mineurs avec contact parental | ✅ détection auto |
 | Auth staff JWT (email + password) | ✅ configuré |
-| API REST (serializers + endpoints) | configuré |
-| Portail admin frontend | modèles prêts |
+| API REST (serializers + endpoints) | ✅ livré |
+| Portail admin frontend | ✅ livré |
 
-## Hors scope v0 (volontaire)
+## Hors scope v0  
 
-- Paiement en ligne Stripe → v1
-- Portail self-service membre → v1
-- Relances WhatsApp automatiques (Celery tasks) → v1
-- Multi-club / SaaS → v2
-- Application mobile → v2
+- Paiement en ligne Stripe   
+- Portail self-service membre  
+- Relances WhatsApp automatiques (Celery tasks)  
+- Multi-club / SaaS    
+- Application mobile   
 
 ---
 
@@ -55,7 +55,7 @@ docker compose up --build
 ## Stack
 
 ```
-Next.js 15 (App Router) · Django 5 · PostgreSQL 16 · Redis 7 · Celery · Docker · JWT · Supabase Storage (prod)
+Next.js 15 (App Router)s· Django 5 · PostgreSQL 16 · Redis 7 · Celery · Docker · JWT · Supabase Storage (prod)
 ```
 
 ---

@@ -6,7 +6,6 @@ from auth_staff.models import Staff
 from membres.models import Abonnement, Ceinture, Document, Membre
 from membres.services import get_statut_membre
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

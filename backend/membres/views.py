@@ -42,7 +42,12 @@ class MembreViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Membre.objects.prefetch_related(
-            "documents", "ceintures", "abonnements", "licences", "paiements", "upload_tokens"
+            "documents",
+            "ceintures",
+            "abonnements",
+            "licences",
+            "paiements",
+            "upload_tokens",
         )
         archive = self.request.query_params.get("archive", "false")
         if archive.lower() != "true":
@@ -60,7 +65,9 @@ class MembreViewSet(viewsets.ModelViewSet):
     def add_paiement(self, request, pk=None):
         membre = self.get_object()
         if request.method == "GET":
-            return Response(PaiementSerializer(membre.paiements.order_by("-date"), many=True).data)
+            return Response(
+                PaiementSerializer(membre.paiements.order_by("-date"), many=True).data
+            )
         serializer = PaiementCreateSerializer(
             data=request.data, context={"membre": membre, "request": request}
         )
@@ -106,7 +113,9 @@ class SendDocumentLinkView(APIView):
         try:
             membre = Membre.objects.get(pk=pk, archive=False)
         except Membre.DoesNotExist:
-            return Response({"detail": "Membre introuvable."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Membre introuvable."}, status=status.HTTP_404_NOT_FOUND
+            )
 
         token = UploadToken.create_for(membre)
         base_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
@@ -138,9 +147,13 @@ class DocumentUploadView(APIView):
         try:
             token = UploadToken.objects.select_related("membre").get(pk=token_id)
         except (UploadToken.DoesNotExist, Exception):
-            return None, Response({"detail": "Lien invalide."}, status=status.HTTP_404_NOT_FOUND)
+            return None, Response(
+                {"detail": "Lien invalide."}, status=status.HTTP_404_NOT_FOUND
+            )
         if not token.is_valid:
-            resp = Response({"detail": "Lien expiré ou déjà utilisé."}, status=status.HTTP_410_GONE)
+            resp = Response(
+                {"detail": "Lien expiré ou déjà utilisé."}, status=status.HTTP_410_GONE
+            )
             return None, resp
         return token, None
 
@@ -154,14 +167,21 @@ class DocumentUploadView(APIView):
             requis.append("autorisation_parentale")
         actifs = set(membre.documents.filter(actif=True).values_list("type", flat=True))
         manquants = [t for t in requis if t not in actifs]
-        return Response({
-            "membre": {"prenom": membre.prenom, "nom": membre.nom, "est_mineur": membre.est_mineur},
-            "manquants": manquants,
-            "expires_at": token.expires_at,
-        })
+        return Response(
+            {
+                "membre": {
+                    "prenom": membre.prenom,
+                    "nom": membre.nom,
+                    "est_mineur": membre.est_mineur,
+                },
+                "manquants": manquants,
+                "expires_at": token.expires_at,
+            }
+        )
 
     def post(self, request, token_id):
         from datetime import date, timedelta
+
         token, err = self._get_token(token_id)
         if err:
             return err
@@ -171,7 +191,9 @@ class DocumentUploadView(APIView):
         # Photo d'identité
         photo = request.FILES.get("photo_identite")
         if photo:
-            membre.documents.filter(type="photo_identite", actif=True).update(actif=False)
+            membre.documents.filter(type="photo_identite", actif=True).update(
+                actif=False
+            )
             Document.objects.create(
                 membre=membre,
                 type="photo_identite",
@@ -183,7 +205,9 @@ class DocumentUploadView(APIView):
         # Certif médical — date exp auto = aujourd'hui + 1 an
         certif = request.FILES.get("certif_medical")
         if certif:
-            membre.documents.filter(type="certif_medical", actif=True).update(actif=False)
+            membre.documents.filter(type="certif_medical", actif=True).update(
+                actif=False
+            )
             Document.objects.create(
                 membre=membre,
                 type="certif_medical",
@@ -207,7 +231,9 @@ class DocumentUploadView(APIView):
         # Autorisation parentale
         autori = request.FILES.get("autorisation_parentale")
         if autori:
-            membre.documents.filter(type="autorisation_parentale", actif=True).update(actif=False)
+            membre.documents.filter(type="autorisation_parentale", actif=True).update(
+                actif=False
+            )
             Document.objects.create(
                 membre=membre,
                 type="autorisation_parentale",
@@ -217,7 +243,9 @@ class DocumentUploadView(APIView):
             created.append("autorisation_parentale")
 
         if not created:
-            return Response({"detail": "Aucun document reçu."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Aucun document reçu."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         token.used = True
         token.save()
@@ -257,10 +285,17 @@ class AlertesView(APIView):
             if not requis.issubset(docs_actifs):
                 continue
             certif = next(
-                (d for d in m.documents.all() if d.type == "certif_medical" and d.actif), None
+                (
+                    d
+                    for d in m.documents.all()
+                    if d.type == "certif_medical" and d.actif
+                ),
+                None,
             )
             certif_expire = (
-                not certif or not certif.date_expiration or certif.date_expiration < today
+                not certif
+                or not certif.date_expiration
+                or certif.date_expiration < today
             )
             abonnement = next((a for a in m.abonnements.all() if a.actif), None)
             dernier_paiement = max(

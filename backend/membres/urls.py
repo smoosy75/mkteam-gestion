@@ -20,6 +20,8 @@ urlpatterns = [
         SendDocumentLinkView.as_view(),
         name="send_document_link",
     ),
-    path("upload/<uuid:token_id>/", DocumentUploadView.as_view(), name="document_upload"),
+    path(
+        "upload/<uuid:token_id>/", DocumentUploadView.as_view(), name="document_upload"
+    ),
     path("", include(router.urls)),
 ]

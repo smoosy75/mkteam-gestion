@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
 interface Membre {
@@ -23,6 +23,7 @@ const STATUT_STYLE: Record<string, string> = {
 };
 
 export default function MembresPage() {
+  const router = useRouter();
   const [membres, setMembres] = useState<Membre[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -69,19 +70,20 @@ export default function MembresPage() {
             </thead>
             <tbody>
               {filtered.map((m) => (
-                <tr key={m.id} className="border-b last:border-0 hover:bg-gray-50">
+                <tr
+                  key={m.id}
+                  onClick={() => router.push(`/admin/membres/${m.id}`)}
+                  className="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
+                >
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/membres/${m.id}`}
-                      className="font-medium hover:underline"
-                    >
+                    <span className="font-medium">
                       {m.prenom} {m.nom}
                       {m.est_mineur && (
                         <span className="ml-2 text-xs bg-blue-100 text-blue-700 rounded px-1.5 py-0.5">
                           mineur
                         </span>
                       )}
-                    </Link>
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     <div>{m.email}</div>

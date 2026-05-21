@@ -14,9 +14,69 @@ type FormData = {
   instagram?: string;
   nom_responsable?: string;
   tel_responsable?: string;
+  formule: string;
   type_abonnement: "mensuel" | "annuel";
   date_debut: string;
   nombre_mois?: number;
+};
+
+type PaiementOption = { label: string; type: "mensuel" | "annuel"; mois?: number };
+type Categorie = { label: string; options: PaiementOption[] };
+
+const CATEGORIES: Record<string, Categorie> = {
+  adulte_annuel: {
+    label: "Adulte — 700€/an",
+    options: [
+      { label: "1× 700€ (comptant)",   type: "annuel" },
+      { label: "4× 175€ par CB",        type: "mensuel", mois: 4 },
+      { label: "5× 140€ par chèque",    type: "mensuel", mois: 5 },
+    ],
+  },
+  adulte_feminin: {
+    label: "Adulte Féminin — 500€/an",
+    options: [
+      { label: "1× 500€ (comptant)",  type: "annuel" },
+      { label: "4× 125€ par CB",       type: "mensuel", mois: 4 },
+      { label: "5× 100€ par chèque",   type: "mensuel", mois: 5 },
+    ],
+  },
+  adulte_noire: {
+    label: "Adulte Ceinture noire — 600€/an",
+    options: [
+      { label: "1× 600€ (comptant)",  type: "annuel" },
+      { label: "4× 150€ par CB",       type: "mensuel", mois: 4 },
+      { label: "5× 120€ par chèque",   type: "mensuel", mois: 5 },
+    ],
+  },
+  adulte_mensuel: {
+    label: "Adulte — 200€/mois",
+    options: [{ label: "200€/mois", type: "mensuel", mois: 1 }],
+  },
+  adolescent: {
+    label: "Adolescent 16-17 ans — 550€/an",
+    options: [{ label: "1× 550€ (comptant)", type: "annuel" }],
+  },
+  preadolescent: {
+    label: "Pré-ado 11-15 ans — 500€/an",
+    options: [
+      { label: "1× 500€ (comptant)",       type: "annuel" },
+      { label: "3× (paiement échelonné)",   type: "mensuel", mois: 3 },
+    ],
+  },
+  enfant: {
+    label: "Enfant 8-10 ans — 500€/an",
+    options: [
+      { label: "1× 500€ (comptant)",       type: "annuel" },
+      { label: "3× (paiement échelonné)",   type: "mensuel", mois: 3 },
+    ],
+  },
+  baby: {
+    label: "Baby 5-7 ans — 450€/an",
+    options: [
+      { label: "1× 450€ (comptant)",       type: "annuel" },
+      { label: "3× (paiement échelonné)",   type: "mensuel", mois: 3 },
+    ],
+  },
 };
 
 function calcAge(ddn: string): number {
@@ -29,20 +89,43 @@ function calcAge(ddn: string): number {
 export default function InscriptionPage() {
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [categorie, setCategorie] = useState("");
+  const [paiementIdx, setPaiementIdx] = useState<number | "">("");
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    defaultValues: { type_abonnement: "mensuel" },
+    defaultValues: { type_abonnement: "annuel", formule: "" },
   });
 
   const ddn = watch("date_naissance");
-  const typeAbo = watch("type_abonnement");
   const estMineur = calcAge(ddn) < 18;
+
+  const optionsCat = categorie ? CATEGORIES[categorie]?.options ?? [] : [];
+  const autoSingle = optionsCat.length === 1;
+
+  const applyPaiement = (idx: number, cat: string) => {
+    const opt = CATEGORIES[cat]?.options[idx];
+    if (!opt) return;
+    setValue("type_abonnement", opt.type);
+    setValue("nombre_mois", opt.mois ?? undefined);
+    setValue("formule", `${cat}__${idx}`);
+  };
+
+  const handleCategorieChange = (cat: string) => {
+    setCategorie(cat);
+    setPaiementIdx("");
+    setValue("formule", "");
+    if (CATEGORIES[cat]?.options.length === 1) {
+      setPaiementIdx(0);
+      applyPaiement(0, cat);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     setServerError(null);
@@ -56,8 +139,12 @@ export default function InscriptionPage() {
       setError("tel_responsable", { message: "Obligatoire pour un mineur" });
       return;
     }
-    if (data.type_abonnement === "mensuel" && !data.nombre_mois) {
-      setError("nombre_mois", { message: "Obligatoire pour un abonnement mensuel" });
+    if (!categorie) {
+      setServerError("Choisissez une catégorie d'abonnement.");
+      return;
+    }
+    if (optionsCat.length > 1 && paiementIdx === "") {
+      setServerError("Choisissez une option de paiement.");
       return;
     }
 
@@ -191,13 +278,52 @@ export default function InscriptionPage() {
           {/* Abonnement */}
           <section>
             <h2 className="font-semibold text-lg mb-4 border-b pb-2">Abonnement</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Type *" error={errors.type_abonnement?.message}>
-                <select {...register("type_abonnement")} className={inp()}>
-                  <option value="mensuel">Mensuel</option>
-                  <option value="annuel">Annuel</option>
+            <div className="space-y-4">
+              <Field label="Catégorie *">
+                <select
+                  value={categorie}
+                  onChange={(e) => handleCategorieChange(e.target.value)}
+                  className={inp()}
+                >
+                  <option value="">— Choisir une catégorie —</option>
+                  <optgroup label="Adultes">
+                    <option value="adulte_annuel">Adulte — 700€/an</option>
+                    <option value="adulte_feminin">Adulte Féminin — 500€/an</option>
+                    <option value="adulte_noire">Adulte Ceinture noire — 600€/an</option>
+                    <option value="adulte_mensuel">Adulte — 200€/mois</option>
+                  </optgroup>
+                  <optgroup label="Jeunes">
+                    <option value="adolescent">Adolescent 16-17 ans — 550€/an</option>
+                    <option value="preadolescent">Pré-ado 11-15 ans — 500€/an</option>
+                    <option value="enfant">Enfant 8-10 ans — 500€/an</option>
+                    <option value="baby">Baby 5-7 ans — 450€/an</option>
+                  </optgroup>
                 </select>
               </Field>
+
+              {categorie && !autoSingle && (
+                <Field label="Mode de paiement *">
+                  <select
+                    value={paiementIdx}
+                    onChange={(e) => {
+                      const idx = Number(e.target.value);
+                      setPaiementIdx(idx);
+                      applyPaiement(idx, categorie);
+                    }}
+                    className={inp()}
+                  >
+                    <option value="">— Choisir —</option>
+                    {optionsCat.map((opt, i) => (
+                      <option key={i} value={i}>{opt.label}</option>
+                    ))}
+                  </select>
+                </Field>
+              )}
+
+              {categorie && autoSingle && (
+                <p className="text-sm text-gray-500">{optionsCat[0].label}</p>
+              )}
+
               <Field label="Date de début *" error={errors.date_debut?.message}>
                 <input
                   type="date"
@@ -206,18 +332,9 @@ export default function InscriptionPage() {
                 />
               </Field>
             </div>
-            {typeAbo === "mensuel" && (
-              <div className="mt-4">
-                <Field label="Nombre de mois *" error={errors.nombre_mois?.message}>
-                  <input
-                    type="number"
-                    min={1}
-                    {...register("nombre_mois", { valueAsNumber: true })}
-                    className={inp()}
-                  />
-                </Field>
-              </div>
-            )}
+            <input type="hidden" {...register("formule")} />
+            <input type="hidden" {...register("type_abonnement")} />
+            <input type="hidden" {...register("nombre_mois", { valueAsNumber: true })} />
           </section>
 
           <div className="pt-2">

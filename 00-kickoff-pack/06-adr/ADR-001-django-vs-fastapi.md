@@ -1,4 +1,4 @@
-# ADR-001 — Backend : Django 5 + DRF plutôt que FastAPI
+# ADR-001 — Backend : Django 5 + DRF
 
 **Date :** 18 mai 2026
 **Statut :** Décidé
@@ -11,15 +11,14 @@ Choix du framework backend Python pour l'API REST du projet.
 
 ## Options considérées
 
-| Critère | Django 5 + DRF | FastAPI |
-|---|---|---|
-| Maturité | Très mature (2005) | Récent (2018) |
-| ORM intégré | ✅ ORM puissant | ❌ SQLAlchemy séparé |
-| Admin natif | ✅ Opérationnel en 0 ligne | ❌ À construire |
-| Auth intégrée | ✅ AbstractBaseUser | Librairie tierce |
-| Async natif | Partiel | ✅ Natif |
-| Compétence équipe | ✅ Maîtrisé | Partiel |
-| Ecosystème | ✅ Vaste, stable | Croissant |
+| Critère           | Django 5 + DRF          |
+| ----------------- | ----------------------- |
+| Maturité          | Très mature (2005)      |
+| ORM intégré       | ORM puissant            |
+| Admin natif       | Opérationnel en 0 ligne |
+| Auth intégrée     | AbstractBaseUser        |
+| Async natif       | Partiel                 |
+| Compétence équipe | Maîtrisé                |
 
 ## Décision
 

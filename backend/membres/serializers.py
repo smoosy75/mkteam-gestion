@@ -24,7 +24,11 @@ class DocumentSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         if obj.fichier:
             request = self.context.get("request")
-            return request.build_absolute_uri(obj.fichier.url) if request else obj.fichier.url
+            return (
+                request.build_absolute_uri(obj.fichier.url)
+                if request
+                else obj.fichier.url
+            )
         return obj.url_fichier
 
 
@@ -114,7 +118,10 @@ class MembreDetailSerializer(serializers.ModelSerializer):
 
     def get_has_active_token(self, obj):
         from django.utils import timezone
-        return obj.upload_tokens.filter(used=False, expires_at__gt=timezone.now()).exists()
+
+        return obj.upload_tokens.filter(
+            used=False, expires_at__gt=timezone.now()
+        ).exists()
 
 
 class InscriptionSerializer(serializers.ModelSerializer):
