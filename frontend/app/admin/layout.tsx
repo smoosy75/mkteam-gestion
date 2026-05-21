@@ -8,14 +8,17 @@ import { clearToken } from "@/lib/api";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const isLoginPage = pathname === "/admin/login";
+  const hasToken =
+    typeof window !== "undefined" ? !!localStorage.getItem("mkteam_token") : false;
 
   useEffect(() => {
-    if (pathname === "/admin/login") return;
-    const token = localStorage.getItem("mkteam_token");
-    if (!token) router.replace("/admin/login");
-  }, [pathname, router]);
+    if (isLoginPage || hasToken) return;
+    router.replace("/admin/login");
+  }, [isLoginPage, hasToken, router]);
 
-  if (pathname === "/admin/login") return <>{children}</>;
+  if (isLoginPage) return <>{children}</>;
+  if (!hasToken) return null;
 
   return (
     <div className="min-h-screen flex">

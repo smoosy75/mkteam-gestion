@@ -134,7 +134,7 @@ export default function UploadPage({ params }: { params: Promise<{ token: string
                     required
                   />
                   <span className="text-sm">
-                    J'ai lu et j'accepte le{" "}
+                    J&apos;ai lu et j&apos;accepte le{" "}
                     <span className="text-blue-600 underline cursor-pointer">
                       règlement intérieur MK Team Paris
                     </span>
@@ -157,7 +157,7 @@ export default function UploadPage({ params }: { params: Promise<{ token: string
                   />
                   {type === "certif_medical" && (
                     <p className="text-xs text-gray-400 mt-1">
-                      Validité : 1 an à compter de la date d'émission
+                      Validité : 1 an à compter de la date d&apos;émission
                     </p>
                   )}
                 </>
@@ -175,7 +175,7 @@ export default function UploadPage({ params }: { params: Promise<{ token: string
         </form>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          Lien valable jusqu'au {new Date(info.expires_at).toLocaleDateString("fr-FR")}
+          Lien valable jusqu&apos;au {new Date(info.expires_at).toLocaleDateString("fr-FR")}
         </p>
       </div>
     </div>

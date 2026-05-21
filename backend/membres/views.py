@@ -140,7 +140,8 @@ class DocumentUploadView(APIView):
         except (UploadToken.DoesNotExist, Exception):
             return None, Response({"detail": "Lien invalide."}, status=status.HTTP_404_NOT_FOUND)
         if not token.is_valid:
-            return None, Response({"detail": "Lien expiré ou déjà utilisé."}, status=status.HTTP_410_GONE)
+            resp = Response({"detail": "Lien expiré ou déjà utilisé."}, status=status.HTTP_410_GONE)
+            return None, resp
         return token, None
 
     def get(self, request, token_id):
@@ -255,10 +256,16 @@ class AlertesView(APIView):
                 requis.add("autorisation_parentale")
             if not requis.issubset(docs_actifs):
                 continue
-            certif = next((d for d in m.documents.all() if d.type == "certif_medical" and d.actif), None)
-            certif_expire = not certif or not certif.date_expiration or certif.date_expiration < today
+            certif = next(
+                (d for d in m.documents.all() if d.type == "certif_medical" and d.actif), None
+            )
+            certif_expire = (
+                not certif or not certif.date_expiration or certif.date_expiration < today
+            )
             abonnement = next((a for a in m.abonnements.all() if a.actif), None)
-            dernier_paiement = max((p for p in m.paiements.all()), key=lambda p: p.date, default=None)
+            dernier_paiement = max(
+                (p for p in m.paiements.all()), key=lambda p: p.date, default=None
+            )
             if abonnement and dernier_paiement:
                 intervalle = 365 if abonnement.type == "annuel" else 30
                 retard = (today - dernier_paiement.date).days - intervalle
