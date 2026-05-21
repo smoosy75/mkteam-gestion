@@ -107,19 +107,78 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 
-# Tests
-pytest
-
-# Lint
-flake8 . --exclude=.venv,migrations
-black --check . --exclude='.venv|migrations'
-```
-
-```bash
 # Frontend
 cd frontend
 npm install
 npm run dev
+```
+
+---
+
+## Tests
+
+### Backend
+
+Les tests nécessitent PostgreSQL et Redis. Le plus simple est de les lancer via Docker Compose (les services sont déjà up) :
+
+```bash
+# Depuis la racine du projet — services Docker déjà lancés
+docker exec projettechniquemk1-django-1 pytest
+```
+
+Ou en local avec un venv (PostgreSQL et Redis doivent tourner) :
+
+```bash
+cd backend
+source .venv/bin/activate
+
+# Variables requises
+export SECRET_KEY=test-secret-key
+export DEBUG=True
+export POSTGRES_DB=mkteam
+export POSTGRES_USER=mkteam
+export POSTGRES_PASSWORD=mkteam
+export POSTGRES_HOST=localhost
+export REDIS_URL=redis://localhost:6379/0
+
+pytest
+```
+
+Résultat attendu :
+
+```
+collected 27 items
+auth_staff/tests.py ...... [ 22%]
+membres/tests.py ............... [ 77%]
+paiements/tests.py ...... [100%]
+27 passed in Xs
+```
+
+### Ce que couvrent les tests
+
+| Fichier | Cas testés |
+|---|---|
+| `auth_staff/tests.py` | Login valide/invalide, accès protégé, refresh token |
+| `membres/tests.py` | Inscription majeur/mineur, statut calculé, API membres, alertes |
+| `paiements/tests.py` | Enregistrement paiement, validation montant/moyen, accès non authentifié |
+
+### Lint
+
+```bash
+cd backend
+source .venv/bin/activate
+
+# Vérification
+flake8 . --exclude=.venv,migrations
+black --check . --exclude='.venv|migrations'
+
+# Correction automatique
+black . --exclude='.venv|migrations'
+```
+
+```bash
+cd frontend
+npm run lint
 ```
 
 ---
