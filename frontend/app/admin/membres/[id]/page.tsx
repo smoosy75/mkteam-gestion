@@ -51,6 +51,7 @@ interface MembreDetail {
   date_inscription: string;
   archive: boolean;
   dossier_valide: boolean;
+  has_active_token: boolean;
   statut: string;
   documents: Document[];
   ceintures: Ceinture[];
@@ -161,7 +162,6 @@ export default function FicheMembrePage({
   };
 
   const [sendingLink, setSendingLink] = useState(false);
-  const [linkSent, setLinkSent] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
 
   const handleSendLink = async () => {
@@ -169,7 +169,8 @@ export default function FicheMembrePage({
     setLinkError(null);
     try {
       await api.post(`/api/membres/${id}/send_document_link/`, {});
-      setLinkSent(true);
+      const m = await api.get<MembreDetail>(`/api/membres/${id}/`);
+      setMembre(m);
     } catch {
       setLinkError("Échec envoi email — vérifiez la config SMTP.");
     } finally {
@@ -208,10 +209,10 @@ export default function FicheMembrePage({
               </button>
               <button
                 onClick={handleSendLink}
-                disabled={sendingLink || linkSent}
-                className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 rounded px-3 py-1"
+                disabled={sendingLink || membre.has_active_token}
+                className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed rounded px-3 py-1"
               >
-                {linkSent ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
+                {membre.has_active_token ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
               </button>
             </>
           )}

@@ -42,7 +42,7 @@ class MembreViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Membre.objects.prefetch_related(
-            "documents", "ceintures", "abonnements", "licences", "paiements"
+            "documents", "ceintures", "abonnements", "licences", "paiements", "upload_tokens"
         )
         archive = self.request.query_params.get("archive", "false")
         if archive.lower() != "true":
