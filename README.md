@@ -52,6 +52,107 @@ docker compose up --build
 
 ---
 
+## Workflow complet — de l'inscription à l'adhésion active
+
+### Étape 1 — Créer un compte staff (une seule fois)
+
+```bash
+docker exec -it projettechniquemk1-django-1 \
+  python manage.py shell -c "
+from auth_staff.models import Staff
+Staff.objects.create_superuser(
+    email='admin@mkteam.fr',
+    nom='Dupont',
+    password='motdepasse123'
+)
+print('Staff créé.')
+"
+```
+
+### Étape 2 — Le futur membre remplit le formulaire public
+
+Ouvrir **http://localhost:3000/inscription**
+
+- Remplir nom, prénom, date de naissance, contact
+- Si mineur détecté automatiquement → champs responsable légal apparaissent
+- Choisir catégorie + mode de paiement
+- Soumettre → statut passe à **EN_ATTENTE**
+
+### Étape 3 — Se connecter au portail staff
+
+Ouvrir **http://localhost:3000/admin/login**
+
+Saisir les identifiants créés à l'étape 1.
+
+### Étape 4 — Dashboard : voir les dossiers en attente
+
+Le dashboard affiche immédiatement :
+
+- **En attente de validation** — membres qui ont soumis le formulaire mais dont le dossier est incomplet
+- **Suspendus** — membres avec certif expiré ou paiement en retard
+- **Alertes certifs** — expirations à venir dans les 30 jours
+
+Cliquer sur un membre pour ouvrir sa fiche.
+
+### Étape 5 — Envoyer le lien de dépôt de documents
+
+Dans la fiche membre (statut **EN_ATTENTE**) :
+
+1. Cliquer **"Envoyer lien documents"**
+2. Le membre reçoit un email avec un lien valable 7 jours
+3. Le bouton passe en grisé — lien déjà envoyé
+
+> En dev, configurer `EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'`
+> dans `settings.py` pour voir l'email dans les logs Docker au lieu de l'envoyer.
+
+### Étape 6 — Le membre dépose ses documents
+
+Le membre ouvre le lien reçu par email → **http://localhost:3000/upload/\<token\>**
+
+Documents requis :
+- Photo d'identité
+- Certificat médical (validité 1 an auto)
+- Règlement intérieur (case à cocher)
+- Autorisation parentale (si mineur)
+
+Une fois envoyés, le lien est invalidé (usage unique).
+
+### Étape 7 — Valider le dossier
+
+Dans la fiche membre, vérifier les documents via **"Voir"** sur chaque ligne.
+
+- Dossier complet → statut passe automatiquement à **ACTIF**
+- Dossier incomplet → cliquer **"Valider le dossier"** pour forcer la validation manuellement
+
+### Étape 8 — Enregistrer le premier paiement
+
+Dans la fiche membre, section **"Enregistrer un paiement"** :
+
+- Saisir date, montant, moyen (espèces / chèque / TPE)
+- Ajouter une note optionnelle (ex : "Chèque n°12345")
+- L'historique des paiements s'affiche en dessous
+
+### Étape 9 (optionnel) — Saisir une ceinture
+
+Dans la fiche membre, section **"Ceintures"** :
+
+- Choisir grade (blanche → noire)
+- Nom du professeur + date d'obtention
+- La ceinture actuelle s'affiche en tête de liste
+
+---
+
+### Récapitulatif des statuts
+
+| Statut | Condition |
+|---|---|
+| **EN_ATTENTE** | Dossier incomplet (documents manquants) |
+| **ACTIF** | Dossier complet + certif valide + paiement à jour |
+| **SUSPENDU** | Certif expiré OU retard de paiement > 30 jours |
+| **ANCIEN** | Membre archivé manuellement |
+
+---
+
 ## Stack
 
 ```
