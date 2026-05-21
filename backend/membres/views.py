@@ -84,6 +84,13 @@ class MembreViewSet(viewsets.ModelViewSet):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=["patch"], url_path="valider")
+    def valider(self, request, pk=None):
+        membre = self.get_object()
+        membre.dossier_valide = True
+        membre.save()
+        return Response({"statut": get_statut_membre(membre)})
+
     @action(detail=True, methods=["patch"], url_path="archiver")
     def archiver(self, request, pk=None):
         membre = self.get_object()

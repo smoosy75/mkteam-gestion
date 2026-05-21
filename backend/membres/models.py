@@ -1,7 +1,8 @@
 import uuid
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import models
+from django.utils import timezone
 
 
 class Membre(models.Model):
@@ -18,6 +19,7 @@ class Membre(models.Model):
     tel_responsable = models.CharField(max_length=20, blank=True)
     date_inscription = models.DateField(auto_now_add=True)
     archive = models.BooleanField(default=False)
+    dossier_valide = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -117,10 +119,38 @@ class Document(models.Model):
         Membre, on_delete=models.CASCADE, related_name="documents"
     )
     type = models.CharField(max_length=30, choices=Type.choices)
-    url_fichier = models.TextField()
+    fichier = models.FileField(upload_to="documents/%Y/%m/", blank=True)
+    url_fichier = models.TextField(blank=True)
     date_upload = models.DateTimeField(auto_now_add=True)
     date_expiration = models.DateField(null=True, blank=True)
     actif = models.BooleanField(default=True)
 
+    def get_url(self):
+        if self.fichier:
+            return self.fichier.url
+        return self.url_fichier
+
     def __str__(self):
         return f"{self.membre} — {self.type}"
+
+
+class UploadToken(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    membre = models.ForeignKey(Membre, on_delete=models.CASCADE, related_name="upload_tokens")
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def create_for(cls, membre):
+        return cls.objects.create(
+            membre=membre,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+
+    @property
+    def is_valid(self):
+        return not self.used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"Token {self.id} — {self.membre}"

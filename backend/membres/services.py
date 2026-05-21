@@ -6,7 +6,7 @@ from membres.models import Abonnement, Document, Membre
 def get_statut_membre(membre: Membre) -> str:
     if membre.archive:
         return "ANCIEN"
-    if not _dossier_complet(membre):
+    if not (membre.dossier_valide or _dossier_complet(membre)):
         return "EN_ATTENTE"
     if _certif_expire(membre):
         return "SUSPENDU"

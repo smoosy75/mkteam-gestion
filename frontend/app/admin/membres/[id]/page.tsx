@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 interface Document {
   id: string;
   type: string;
-  url_fichier: string;
+  url: string;
   date_expiration: string | null;
   actif: boolean;
 }
@@ -50,6 +50,7 @@ interface MembreDetail {
   tel_responsable: string;
   date_inscription: string;
   archive: boolean;
+  dossier_valide: boolean;
   statut: string;
   documents: Document[];
   ceintures: Ceinture[];
@@ -146,6 +147,19 @@ export default function FicheMembrePage({
     router.push("/admin/membres");
   };
 
+  const [validating, setValidating] = useState(false);
+
+  const handleValider = async () => {
+    setValidating(true);
+    try {
+      await api.patch(`/api/membres/${id}/valider/`);
+      const m = await api.get<MembreDetail>(`/api/membres/${id}/`);
+      setMembre(m);
+    } finally {
+      setValidating(false);
+    }
+  };
+
   const [sendingLink, setSendingLink] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -184,13 +198,22 @@ export default function FicheMembrePage({
             {membre.statut}
           </span>
           {membre.statut === "EN_ATTENTE" && !membre.archive && (
-            <button
-              onClick={handleSendLink}
-              disabled={sendingLink || linkSent}
-              className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 rounded px-3 py-1"
-            >
-              {linkSent ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
-            </button>
+            <>
+              <button
+                onClick={handleValider}
+                disabled={validating}
+                className="text-sm bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 rounded px-3 py-1"
+              >
+                {validating ? "..." : "Valider le dossier"}
+              </button>
+              <button
+                onClick={handleSendLink}
+                disabled={sendingLink || linkSent}
+                className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 rounded px-3 py-1"
+              >
+                {linkSent ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
+              </button>
+            </>
           )}
           {linkError && (
             <span className="text-xs text-red-600">{linkError}</span>
@@ -243,8 +266,10 @@ export default function FicheMembrePage({
                               {doc.date_expiration && (
                                 <span className="text-xs text-gray-500">exp. {doc.date_expiration}</span>
                               )}
-                              <a href={doc.url_fichier} target="_blank" rel="noreferrer"
-                                className="text-xs text-blue-600 hover:underline">Voir</a>
+                              {doc.url && (
+                                <a href={doc.url} target="_blank" rel="noreferrer"
+                                  className="text-xs text-blue-600 hover:underline">Voir</a>
+                              )}
                             </div>
                           )}
                         </li>

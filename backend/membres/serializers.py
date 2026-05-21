@@ -7,17 +7,25 @@ from membres.services import get_statut_membre
 
 
 class DocumentSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = Document
         fields = [
             "id",
             "type",
-            "url_fichier",
+            "url",
             "date_upload",
             "date_expiration",
             "actif",
         ]
-        read_only_fields = ["id", "date_upload"]
+        read_only_fields = ["id", "date_upload", "url"]
+
+    def get_url(self, obj):
+        if obj.fichier:
+            request = self.context.get("request")
+            return request.build_absolute_uri(obj.fichier.url) if request else obj.fichier.url
+        return obj.url_fichier
 
 
 class CeintureSerializer(serializers.ModelSerializer):
@@ -56,6 +64,7 @@ class MembreListSerializer(serializers.ModelSerializer):
             "date_inscription",
             "est_mineur",
             "archive",
+            "dossier_valide",
             "statut",
         ]
 
@@ -88,6 +97,7 @@ class MembreDetailSerializer(serializers.ModelSerializer):
             "tel_responsable",
             "date_inscription",
             "archive",
+            "dossier_valide",
             "statut",
             "documents",
             "ceintures",
