@@ -146,6 +146,23 @@ export default function FicheMembrePage({
     router.push("/admin/membres");
   };
 
+  const [sendingLink, setSendingLink] = useState(false);
+  const [linkSent, setLinkSent] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  const handleSendLink = async () => {
+    setSendingLink(true);
+    setLinkError(null);
+    try {
+      await api.post(`/api/membres/${id}/send_document_link/`, {});
+      setLinkSent(true);
+    } catch {
+      setLinkError("Échec envoi email — vérifiez la config SMTP.");
+    } finally {
+      setSendingLink(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-gray-400 text-sm">Chargement...</div>;
   if (!membre) return <div className="p-8 text-red-500">Membre introuvable</div>;
 
@@ -166,6 +183,18 @@ export default function FicheMembrePage({
           <span className={`text-sm font-medium px-3 py-1 rounded-full ${STATUT_STYLE[membre.statut]}`}>
             {membre.statut}
           </span>
+          {membre.statut === "EN_ATTENTE" && !membre.archive && (
+            <button
+              onClick={handleSendLink}
+              disabled={sendingLink || linkSent}
+              className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 rounded px-3 py-1"
+            >
+              {linkSent ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
+            </button>
+          )}
+          {linkError && (
+            <span className="text-xs text-red-600">{linkError}</span>
+          )}
           {!membre.archive && (
             <button
               onClick={handleArchiver}
@@ -195,28 +224,41 @@ export default function FicheMembrePage({
 
           {/* Documents */}
           <Card title="Documents">
-            {membre.documents.length === 0 ? (
-              <p className="text-sm text-gray-400">Aucun document</p>
-            ) : (
-              <ul className="space-y-2">
-                {membre.documents.map((d) => (
-                  <li key={d.id} className="text-sm flex items-center justify-between">
-                    <span className={d.actif ? "" : "line-through text-gray-400"}>
-                      {d.type.replace(/_/g, " ")}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {d.date_expiration && (
-                        <span className="text-xs text-gray-500">exp. {d.date_expiration}</span>
-                      )}
-                      <a href={d.url_fichier} target="_blank" rel="noreferrer"
-                        className="text-xs text-blue-600 hover:underline">
-                        Voir
-                      </a>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {(() => {
+              const requis = ["certif_medical", "photo_identite", "reglement", ...(membre.est_mineur ? ["autorisation_parentale"] : [])];
+              const actifs = new Set(membre.documents.filter(d => d.actif).map(d => d.type));
+              return (
+                <>
+                  <ul className="space-y-2 mb-3">
+                    {requis.map((type) => {
+                      const doc = membre.documents.find(d => d.type === type && d.actif);
+                      return (
+                        <li key={type} className="text-sm flex items-center justify-between">
+                          <span className={`flex items-center gap-1.5 ${doc ? "" : "text-red-500"}`}>
+                            <span>{doc ? "✓" : "✗"}</span>
+                            <span>{type.replace(/_/g, " ")}</span>
+                          </span>
+                          {doc && (
+                            <div className="flex items-center gap-2">
+                              {doc.date_expiration && (
+                                <span className="text-xs text-gray-500">exp. {doc.date_expiration}</span>
+                              )}
+                              <a href={doc.url_fichier} target="_blank" rel="noreferrer"
+                                className="text-xs text-blue-600 hover:underline">Voir</a>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {requis.every(t => actifs.has(t)) ? (
+                    <p className="text-xs text-green-600 font-medium">Dossier complet</p>
+                  ) : (
+                    <p className="text-xs text-red-500 font-medium">Dossier incomplet — membre EN_ATTENTE</p>
+                  )}
+                </>
+              );
+            })()}
           </Card>
 
           {/* Ceintures */}
@@ -259,8 +301,22 @@ export default function FicheMembrePage({
           </Card>
         </div>
 
-        {/* Colonne droite — Paiements */}
+        {/* Colonne droite */}
         <div className="space-y-5">
+          {/* Abonnement */}
+          {membre.abonnements.length > 0 && (
+            <Card title="Abonnement">
+              {membre.abonnements.map((a) => (
+                <div key={a.id} className="text-sm space-y-1">
+                  <Row label="Type" value={a.type === "mensuel" ? "Mensuel" : "Annuel"} />
+                  <Row label="Début" value={a.date_debut} />
+                  {a.nombre_mois && <Row label="Durée" value={`${a.nombre_mois} mois`} />}
+                  <Row label="Statut" value={a.actif ? "Actif" : "Inactif"} />
+                </div>
+              ))}
+            </Card>
+          )}
+
           <Card title="Enregistrer un paiement">
             {paiementError && (
               <p className="text-sm text-red-600 mb-2">{paiementError}</p>

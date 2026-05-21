@@ -171,6 +171,23 @@ class InscriptionSerializer(serializers.ModelSerializer):
         return membre
 
 
+class MembreUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Membre
+        fields = [
+            "nom",
+            "prenom",
+            "date_naissance",
+            "nationalite",
+            "adresse",
+            "telephone",
+            "email",
+            "instagram",
+            "nom_responsable",
+            "tel_responsable",
+        ]
+
+
 class CeintureCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ceinture
