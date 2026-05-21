@@ -18,8 +18,8 @@ Outil interne pour un club de Jiu-Jitsu Brésilien parisien : centralise les fic
 | Alertes certifs médicaux expirants (J-30 / expirés) | ✅ modèles prêts |
 | Gestion mineurs avec contact parental | ✅ détection auto |
 | Auth staff JWT (email + password) | ✅ configuré |
-| API REST (serializers + endpoints) | 🔄 en cours |
-| Portail admin frontend | 🔄 en cours |
+| API REST (serializers + endpoints) | configuré |
+| Portail admin frontend | modèles prêts |
 
 ## Hors scope v0 (volontaire)
 
