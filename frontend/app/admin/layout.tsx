@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { clearToken } from "@/lib/api";
+
+const subscribe = (cb: () => void) => {
+  window.addEventListener("storage", cb);
+  return () => window.removeEventListener("storage", cb);
+};
+const getSnapshot = () => !!localStorage.getItem("mkteam_token");
+const getServerSnapshot = () => false;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";
-  const hasToken =
-    typeof window !== "undefined" ? !!localStorage.getItem("mkteam_token") : false;
+  const hasToken = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    if (isLoginPage || hasToken) return;
-    router.replace("/admin/login");
+    if (!isLoginPage && !hasToken) router.replace("/admin/login");
   }, [isLoginPage, hasToken, router]);
 
   if (isLoginPage) return <>{children}</>;

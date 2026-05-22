@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 type FormData = {
   nom: string;
@@ -95,7 +95,7 @@ export default function InscriptionPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     setError,
     formState: { errors, isSubmitting },
@@ -103,7 +103,7 @@ export default function InscriptionPage() {
     defaultValues: { type_abonnement: "annuel", formule: "" },
   });
 
-  const ddn = watch("date_naissance");
+  const ddn = useWatch({ control, name: "date_naissance" });
   const estMineur = calcAge(ddn) < 18;
 
   const optionsCat = categorie ? CATEGORIES[categorie]?.options ?? [] : [];
