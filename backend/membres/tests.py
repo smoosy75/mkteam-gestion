@@ -71,6 +71,7 @@ def membre_avec_dossier_complet(db, staff):
         adresse="3 rue Active, Paris",
         telephone="+33600000004",
         email="pierre.actif@test.fr",
+        dossier_valide=True,
     )
     Abonnement.objects.create(
         membre=m,
@@ -110,6 +111,7 @@ def membre_certif_expire(db):
         adresse="4 rue Expire, Paris",
         telephone="+33600000005",
         email="ali.suspendu@test.fr",
+        dossier_valide=True,
     )
     Abonnement.objects.create(
         membre=m,
