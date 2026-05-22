@@ -19,8 +19,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const hasToken = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => {
-    if (!isLoginPage && !hasToken) router.replace("/admin/login");
-  }, [isLoginPage, hasToken, router]);
+    if (!isLoginPage && !localStorage.getItem("mkteam_token")) {
+      router.replace("/admin/login");
+    }
+  }, [isLoginPage, router]);
 
   if (isLoginPage) return <>{children}</>;
   if (!hasToken) return null;
