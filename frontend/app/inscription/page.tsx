@@ -100,7 +100,11 @@ export default function InscriptionPage() {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    defaultValues: { type_abonnement: "annuel", formule: "" },
+    defaultValues: {
+      type_abonnement: "annuel",
+      formule: "",
+      date_debut: new Date().toISOString().split("T")[0],
+    },
   });
 
   const ddn = useWatch({ control, name: "date_naissance" });
@@ -328,6 +332,7 @@ export default function InscriptionPage() {
                 <input
                   type="date"
                   {...register("date_debut", { required: "Requis" })}
+                  min={new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
                   className={inp()}
                 />
               </Field>
