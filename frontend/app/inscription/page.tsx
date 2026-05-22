@@ -86,6 +86,9 @@ function calcAge(ddn: string): number {
   );
 }
 
+const TODAY = new Date().toISOString().split("T")[0];
+const MIN_DATE = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
 export default function InscriptionPage() {
   const [submitted, setSubmitted] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -103,7 +106,7 @@ export default function InscriptionPage() {
     defaultValues: {
       type_abonnement: "annuel",
       formule: "",
-      date_debut: new Date().toISOString().split("T")[0],
+      date_debut: TODAY,
     },
   });
 
@@ -332,7 +335,7 @@ export default function InscriptionPage() {
                 <input
                   type="date"
                   {...register("date_debut", { required: "Requis" })}
-                  min={new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                  min={MIN_DATE}
                   className={inp()}
                 />
               </Field>
