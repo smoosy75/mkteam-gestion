@@ -80,6 +80,7 @@ class MembreDetailSerializer(serializers.ModelSerializer):
     statut = serializers.SerializerMethodField()
     est_mineur = serializers.BooleanField(read_only=True)
     has_active_token = serializers.SerializerMethodField()
+    active_token_id = serializers.SerializerMethodField()
     documents = DocumentSerializer(many=True, read_only=True)
     ceintures = CeintureSerializer(many=True, read_only=True)
     abonnements = AbonnementSerializer(many=True, read_only=True)
@@ -105,6 +106,7 @@ class MembreDetailSerializer(serializers.ModelSerializer):
             "dossier_valide",
             "statut",
             "has_active_token",
+            "active_token_id",
             "documents",
             "ceintures",
             "abonnements",
@@ -122,6 +124,14 @@ class MembreDetailSerializer(serializers.ModelSerializer):
         return obj.upload_tokens.filter(
             used=False, expires_at__gt=timezone.now()
         ).exists()
+
+    def get_active_token_id(self, obj):
+        from django.utils import timezone
+
+        token = obj.upload_tokens.filter(
+            used=False, expires_at__gt=timezone.now()
+        ).first()
+        return str(token.id) if token else None
 
 
 class InscriptionSerializer(serializers.ModelSerializer):

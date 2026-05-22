@@ -52,6 +52,7 @@ interface MembreDetail {
   archive: boolean;
   dossier_valide: boolean;
   has_active_token: boolean;
+  active_token_id: string | null;
   statut: string;
   documents: Document[];
   ceintures: Ceinture[];
@@ -207,13 +208,25 @@ export default function FicheMembrePage({
               >
                 {validating ? "..." : "Valider le dossier"}
               </button>
-              <button
-                onClick={handleSendLink}
-                disabled={sendingLink || membre.has_active_token}
-                className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed rounded px-3 py-1"
-              >
-                {membre.has_active_token ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
-              </button>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={handleSendLink}
+                  disabled={sendingLink || membre.has_active_token}
+                  className="text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed rounded px-3 py-1"
+                >
+                  {membre.has_active_token ? "Lien envoyé ✓" : sendingLink ? "Envoi..." : "Envoyer lien documents"}
+                </button>
+                {membre.active_token_id && (
+                  <a
+                    href={`http://localhost:3000/upload/${membre.active_token_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 underline truncate max-w-xs"
+                  >
+                    Voir le lien
+                  </a>
+                )}
+              </div>
             </>
           )}
           {linkError && (
